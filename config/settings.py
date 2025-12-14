@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -134,3 +135,11 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' # Where to store results
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
+
+# Celery Beat Configuration
+CELERY_BEAT_SCHEDULE = {
+    'fetch-prices-every-minute': {
+        'task': 'app.tasks.fetch_crypto_prices',
+        'schedule': 60.0,  # Run every 60 seconds
+    },
+}
