@@ -5,6 +5,14 @@ import json
 
 class PriceConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        # security check
+        if self.scope["user"].is_anonymous:
+            print("❌ Connection Rejected: No valid token provided.")
+            await self.close()
+            return
+
+        print(f"✅ User {self.scope['user']} Connected!")
+
         self.room_group_name = "crypto_feed"
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)

@@ -3,7 +3,7 @@ import json
 
 
 # define websocket url
-WS_URL = "ws://127.0.0.1:8000/ws/prices/"
+WS_URL = "ws://127.0.0.1:8000/ws/prices/?token=01e690464fb871f7ff4afbfff3edb737b0d65478"
 
 
 def on_message(ws, message):
