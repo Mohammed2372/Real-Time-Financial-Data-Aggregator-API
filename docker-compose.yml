@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=financial_db
+      - POSTGRES_USER=financial
+      - POSTGRES_PASSWORD=financialpassword
+  
+  redis:
+    image: redis:alpine
+  
+  web:
+    build: .
+    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=1
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=financial_db
+      - POSTGRES_USER=financial
+      - POSTGRES_PASSWORD=financialpassword
+      - CELERY_BROKEN_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  celery_worker:
+    build: .
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=financial_db
+      - POSTGRES_USER=financial
+      - POSTGRES_PASSWORD=financialpassword
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+  celery_beat:
+    build: .
+    command: celery -A config beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=financial_db
+      - POSTGRES_USER=financial
+      - POSTGRES_PASSWORD=financialpassword
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+volumes:
+  postgres_data:

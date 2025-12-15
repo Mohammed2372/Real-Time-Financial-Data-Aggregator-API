@@ -1,12 +1,14 @@
 from typing import Any
-from django.contrib.auth.models import AnonymousUser
-from rest_framework.authtoken.models import Token
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 
 
 @database_sync_to_async
-def get_user(token_key) -> Any | AnonymousUser:
+def get_user(token_key):
+    # lazy loading
+    from rest_framework.authtoken.models import Token
+    from django.contrib.auth.models import AnonymousUser
+
     try:
         return Token.objects.get(key=token_key).user
     except Token.DoesNotExist:
@@ -15,6 +17,9 @@ def get_user(token_key) -> Any | AnonymousUser:
 
 class TokenAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
+        # lazy loading for AnonymousUser for fallback
+        from django.contrib.auth.models import AnonymousUser
+
         # get the query string (e.g., b'token=abc123')
         query_string = scope.get("query_string", b"").decode()
 
