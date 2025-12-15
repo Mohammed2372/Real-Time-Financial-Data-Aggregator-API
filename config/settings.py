@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -41,7 +42,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "drf_spectacular",
+    "channels",
     "app",
+    "app.real_time",
 ]
 
 MIDDLEWARE = [
@@ -145,5 +148,19 @@ CELERY_BEAT_SCHEDULE = {
     "fetch-prices-every-minute": {
         "task": "app.tasks.fetch_crypto_prices",
         "schedule": 60.0,  # Run every 60 seconds
+    },
+}
+
+
+ASGI_APPLICATION = "config.asgi.application"
+
+
+# Redis channel layer
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],  # Same Redis as Celery
+        },
     },
 }
